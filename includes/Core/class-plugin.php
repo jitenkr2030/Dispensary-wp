@@ -76,7 +76,7 @@ class Plugin {
 	 */
 	private function __construct() {
 
-		$this->loader   = new Loader();
+		$this->loader   = Loader::instance();
 		$this->settings = new Settings();
 		$this->hooks    = new Hooks();
 		$this->i18n     = new I18n();
