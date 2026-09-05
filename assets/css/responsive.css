@@ -1,0 +1,36 @@
+/**
+ * Dispensary WP responsive styles.
+ */
+
+@media (max-width: 1100px) {
+
+	.dispensary-wp-grid-4 {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.dispensary-wp-grid-3 {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 700px) {
+
+	.dispensary-wp-grid-2,
+	.dispensary-wp-grid-3,
+	.dispensary-wp-grid-4 {
+		grid-template-columns: 1fr;
+	}
+
+	.dispensary-wp-card {
+		padding: 15px;
+	}
+
+	.dispensary-wp-table th,
+	.dispensary-wp-table td {
+		padding: 8px;
+	}
+
+	.dispensary-wp-button {
+		width: 100%;
+	}
+}

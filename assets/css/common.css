@@ -1,0 +1,99 @@
+/**
+ * Dispensary WP common styles.
+ */
+
+.dispensary-wp,
+.dispensary-wp * {
+	box-sizing: border-box;
+}
+
+.dispensary-wp {
+	font-family: inherit;
+	width: 100%;
+}
+
+.dispensary-wp-hidden {
+	display: none !important;
+}
+
+.dispensary-wp-text-center {
+	text-align: center;
+}
+
+.dispensary-wp-text-right {
+	text-align: right;
+}
+
+.dispensary-wp-mt-10 {
+	margin-top: 10px;
+}
+
+.dispensary-wp-mt-20 {
+	margin-top: 20px;
+}
+
+.dispensary-wp-mb-10 {
+	margin-bottom: 10px;
+}
+
+.dispensary-wp-mb-20 {
+	margin-bottom: 20px;
+}
+
+.dispensary-wp-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	padding: 10px 16px;
+	border: 0;
+	border-radius: 5px;
+	background: #2271b1;
+	color: #fff;
+	cursor: pointer;
+	text-decoration: none;
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+.dispensary-wp-button:hover,
+.dispensary-wp-button:focus {
+	color: #fff;
+	opacity: 0.9;
+}
+
+.dispensary-wp-button-secondary {
+	background: #646970;
+}
+
+.dispensary-wp-button-danger {
+	background: #b32d2e;
+}
+
+.dispensary-wp-button-success {
+	background: #008a20;
+}
+
+.dispensary-wp-loading {
+	position: relative;
+	opacity: 0.6;
+	pointer-events: none;
+}
+
+.dispensary-wp-loading::after {
+	content: '';
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	margin-left: 8px;
+	border: 2px solid currentColor;
+	border-right-color: transparent;
+	border-radius: 50%;
+	animation: dispensary-wp-spin 0.7s linear infinite;
+}
+
+@keyframes dispensary-wp-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}

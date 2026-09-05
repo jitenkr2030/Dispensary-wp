@@ -1,0 +1,89 @@
+<?php
+
+namespace Dispensary_WP\Core;
+
+use Dispensary_WP\Compliance\Compliance;
+use Dispensary_WP\Modules\Products\Products;
+use Dispensary_WP\Modules\Inventory\Inventory;
+use Dispensary_WP\Modules\Customers\Customers;
+use Dispensary_WP\Modules\Orders\Orders;
+use Dispensary_WP\Modules\POS\POS;
+use Dispensary_WP\Modules\Delivery\Delivery;
+
+use Dispensary_WP\Security\Security;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+class Plugin {
+
+	private static $instance = null;
+
+	private $loader;
+
+	private $settings;
+
+	private $hooks;
+
+	private $i18n;
+
+	public static function instance() {
+
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
+
+		return self::$instance;
+	}
+
+	private function __construct() {
+
+		$this->loader   = Loader::instance();
+		$this->settings = new Settings();
+		$this->hooks    = new Hooks( $this->loader );
+		$this->i18n     = new I18n();
+
+		$this->register_hooks();
+	}
+
+	private function register_hooks() {
+
+		$this->hooks->register();
+
+		$this->loader->add_action(
+			'plugins_loaded',
+			array(
+				$this->i18n,
+				'load_textdomain',
+			),
+			10,
+			0
+		);
+	}
+
+	public function run() {
+
+		$this->loader->run();
+
+		do_action(
+			'dispensary_wp_plugin_initialized',
+			$this
+		);
+	}
+
+	public function get_loader() {
+
+		return $this->loader;
+	}
+
+	public function get_settings() {
+
+		return $this->settings;
+	}
+
+	public function get_version() {
+
+		return DISPENSARY_WP_VERSION;
+	}
+}
