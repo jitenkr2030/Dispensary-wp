@@ -8,99 +8,104 @@
 use Dispensary_WP\Core\Settings;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
+
+$settings = new Settings();
 
 if ( isset( $_POST['dispensary_wp_save_settings'] ) ) {
 
-	check_admin_referer( 'dispensary_wp_settings' );
+    check_admin_referer( 'dispensary_wp_settings' );
 
-	if ( current_user_can( 'dispensary_manage_settings' ) ) {
+    if ( current_user_can( 'dispensary_manage_settings' ) ) {
 
-		$enabled  = isset( $_POST['enabled'] ) ? '1' : '0';
-		$currency = isset( $_POST['currency'] )
-			? sanitize_text_field( wp_unslash( $_POST['currency'] ) )
-			: 'USD';
+        $enabled = isset( $_POST['enabled'] ) ? '1' : '0';
 
-		Settings::update(
-			array(
-				'enabled'  => $enabled,
-				'currency' => $currency,
-			)
-		);
+        $currency = isset( $_POST['currency'] )
+            ? sanitize_text_field( wp_unslash( $_POST['currency'] ) )
+            : 'USD';
 
-		wp_safe_redirect(
-			add_query_arg(
-				'dispensary_wp_notice',
-				'saved',
-				admin_url( 'admin.php?page=dispensary-wp-settings' )
-			)
-		);
+        $settings->update( 'enabled', $enabled );
+        $settings->update( 'currency', $currency );
 
-		exit;
-	}
+        wp_safe_redirect(
+            add_query_arg(
+                'dispensary_wp_notice',
+                'saved',
+                admin_url( 'admin.php?page=dispensary-wp-settings' )
+            )
+        );
+
+        exit;
+    }
 }
 
-$settings = Settings::all();
+$settings = $settings->get();
+
 ?>
 
 <div class="wrap dispensary-wp-admin">
 
-	<h1><?php esc_html_e( 'Dispensary WP Settings', 'dispensary-wp' ); ?></h1>
+    <h1><?php esc_html_e( 'Dispensary WP Settings', 'dispensary-wp' ); ?></h1>
 
-	<div class="dispensary-wp-panel">
+    <div class="dispensary-wp-panel">
 
-		<form method="post">
+        <form method="post">
 
-			<?php wp_nonce_field( 'dispensary_wp_settings' ); ?>
+            <?php wp_nonce_field( 'dispensary_wp_settings' ); ?>
 
-			<div class="dispensary-wp-form-row">
+            <div class="dispensary-wp-form-row">
 
-				<label for="dispensary-wp-enabled">
-					<?php esc_html_e( 'Plugin Enabled', 'dispensary-wp' ); ?>
-				</label>
+                <label for="dispensary-wp-enabled">
+                    <?php esc_html_e( 'Plugin Enabled', 'dispensary-wp' ); ?>
+                </label>
 
-				<label>
-					<input
-						type="checkbox"
-						id="dispensary-wp-enabled"
-						name="enabled"
-						value="1"
-						<?php checked( ! empty( $settings['enabled'] ) ); ?>
-					>
-					<?php esc_html_e( 'Enable Dispensary WP', 'dispensary-wp' ); ?>
-				</label>
+                <label>
 
-			</div>
+                    <input
+                        type="checkbox"
+                        id="dispensary-wp-enabled"
+                        name="enabled"
+                        value="1"
+                        <?php checked( ! empty( $settings['enabled'] ) ); ?>
+                    >
 
-			<div class="dispensary-wp-form-row">
+                    <?php esc_html_e( 'Enable Dispensary WP', 'dispensary-wp' ); ?>
 
-				<label for="dispensary-wp-currency">
-					<?php esc_html_e( 'Currency', 'dispensary-wp' ); ?>
-				</label>
+                </label>
 
-				<input
-					type="text"
-					id="dispensary-wp-currency"
-					name="currency"
-					value="<?php echo esc_attr( $settings['currency'] ?? 'USD' ); ?>"
-					maxlength="10"
-				>
+            </div>
 
-			</div>
+            <div class="dispensary-wp-form-row">
 
-			<p>
-				<button
-					type="submit"
-					name="dispensary_wp_save_settings"
-					class="button button-primary"
-				>
-					<?php esc_html_e( 'Save Settings', 'dispensary-wp' ); ?>
-				</button>
-			</p>
+                <label for="dispensary-wp-currency">
+                    <?php esc_html_e( 'Currency', 'dispensary-wp' ); ?>
+                </label>
 
-		</form>
+                <input
+                    type="text"
+                    id="dispensary-wp-currency"
+                    name="currency"
+                    value="<?php echo esc_attr( $settings['currency'] ?? 'USD' ); ?>"
+                    maxlength="10"
+                >
 
-	</div>
+            </div>
+
+            <p>
+
+                <button
+                    type="submit"
+                    name="dispensary_wp_save_settings"
+                    class="button button-primary"
+                >
+                    <?php esc_html_e( 'Save Settings', 'dispensary-wp' ); ?>
+                </button>
+
+            </p>
+
+        </form>
+
+    </div>
 
 </div>
