@@ -118,14 +118,7 @@ class Plugin {
 			return;
 		}
 
-		// Run database migrations before loading modules.
-                $migrations = new \Dispensary_WP\Database\Migrations(
-                        \Dispensary_WP\Database\Database::instance(),
-                        new \Dispensary_WP\Database\Schema()
-                );
-                $migrations->run();
-
-                $this->module_loader = new Module_Loader();
+		$this->module_loader = new Module_Loader();
 
 		$modules = $this->module_loader->load();
 

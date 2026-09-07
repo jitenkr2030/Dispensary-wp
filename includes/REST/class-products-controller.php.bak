@@ -8,7 +8,6 @@
 namespace Dispensary_WP\REST;
 
 use Dispensary_WP\Modules\Products\Products;
-use Dispensary_WP\Modules\Products\Product_Controller;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -82,7 +81,7 @@ class Products_Controller {
 			}
 		);
 
-		$result = Product_Controller::list( $args );
+		$result = Products::list( $args );
 
 		return REST_API::response( $result );
 	}
@@ -112,7 +111,7 @@ class Products_Controller {
 	 */
 	public function show( $request ) {
 
-		$result = Product_Controller::get( absint( $request['id'] ) );
+		$result = Products::get( absint( $request['id'] ) );
 
 		if ( ! $result ) {
 			return new \WP_Error(
