@@ -63,7 +63,7 @@ class Stock_Movement {
 				'quantity'        => $quantity,
 				'reference_type'  => sanitize_key( $data['reference_type'] ?? '' ),
 				'reference_id'    => absint( $data['reference_id'] ?? 0 ),
-				'reason'          => sanitize_text_field( $data['reason'] ?? '' ),
+				'note'            => sanitize_text_field( $data['reason'] ?? $data['note'] ?? '' ),
 				'created_by'      => get_current_user_id(),
 				'created_at'      => current_time( 'mysql', true ),
 			),
