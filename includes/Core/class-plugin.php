@@ -78,7 +78,7 @@ class Plugin {
 
 		$this->loader   = Loader::instance();
 		$this->settings = new Settings();
-		$this->hooks    = new Hooks();
+		$this->hooks    = new Hooks( $this->loader );
 		$this->i18n     = new I18n();
 
 		$this->register_core_hooks();
