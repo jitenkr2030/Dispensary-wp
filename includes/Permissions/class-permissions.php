@@ -99,6 +99,16 @@ class Permissions {
 	}
 
 	/**
+	 * Check whether the current user can view orders.
+	 *
+	 * @return bool
+	 */
+	public static function can_view_orders() {
+
+		return self::can( 'dispensary_view_orders' );
+	}
+
+	/**
 	 * Check whether the current user can use POS.
 	 *
 	 * @return bool
