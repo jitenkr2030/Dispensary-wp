@@ -14,6 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Delivery management service.
+ */
 class Delivery {
 
 	protected $driver;
@@ -22,8 +25,10 @@ class Delivery {
 	protected $route;
 	protected $proof;
 
+	/**
+	 * Constructor.
+	 */
 	public function __construct() {
-
 		$this->driver         = new Driver();
 		$this->zone           = new Delivery_Zone();
 		$this->delivery_order = new Delivery_Order();
@@ -32,11 +37,25 @@ class Delivery {
 	}
 
 	/**
+	 * Check view permission.
+	 */
+	private function can_view() {
+		return Permissions::can( 'dispensary_view_delivery' );
+	}
+
+	/**
+	 * Check manage permission.
+	 */
+	private function can_manage() {
+		return Permissions::can( 'dispensary_manage_delivery' );
+	}
+
+	/**
 	 * Create delivery.
 	 */
 	public function create( $data ) {
 
-		if ( ! Permissions::can_manage_delivery() ) {
+		if ( ! $this->can_manage() ) {
 			return new \WP_Error(
 				'permission_denied',
 				__( 'You do not have permission to manage deliveries.', 'dispensary-wp' )
@@ -65,26 +84,44 @@ class Delivery {
 
 		$delivery_id = $this->delivery_order->create(
 			array(
-				'order_id'          => $order_id,
-				'driver_id'         => absint( $data['driver_id'] ?? 0 ),
-				'zone_id'           => absint( $data['zone_id'] ?? 0 ),
-				'route_id'          => absint( $data['route_id'] ?? 0 ),
-				'status'            => 'pending',
-				'address_line_1'    => sanitize_text_field( $data['address_line_1'] ?? '' ),
-				'address_line_2'    => sanitize_text_field( $data['address_line_2'] ?? '' ),
-				'city'              => sanitize_text_field( $data['city'] ?? '' ),
-				'state'             => sanitize_text_field( $data['state'] ?? '' ),
-				'postal_code'       => sanitize_text_field( $data['postal_code'] ?? '' ),
-				'country'           => sanitize_text_field( $data['country'] ?? '' ),
-				'latitude'          => isset( $data['latitude'] ) ? (float) $data['latitude'] : 0,
-				'longitude'         => isset( $data['longitude'] ) ? (float) $data['longitude'] : 0,
-				'delivery_note'     => sanitize_textarea_field( $data['delivery_note'] ?? '' ),
-				'scheduled_at'      => ! empty( $data['scheduled_at'] )
+				'order_id'       => $order_id,
+				'driver_id'      => absint( $data['driver_id'] ?? 0 ),
+				'zone_id'        => absint( $data['zone_id'] ?? 0 ),
+				'route_id'       => absint( $data['route_id'] ?? 0 ),
+				'status'         => 'pending',
+				'address_line_1' => sanitize_text_field(
+					$data['address_line_1'] ?? ''
+				),
+				'address_line_2' => sanitize_text_field(
+					$data['address_line_2'] ?? ''
+				),
+				'city'           => sanitize_text_field(
+					$data['city'] ?? ''
+				),
+				'state'          => sanitize_text_field(
+					$data['state'] ?? ''
+				),
+				'postal_code'    => sanitize_text_field(
+					$data['postal_code'] ?? ''
+				),
+				'country'        => sanitize_text_field(
+					$data['country'] ?? ''
+				),
+				'latitude'       => isset( $data['latitude'] )
+					? (float) $data['latitude']
+					: 0,
+				'longitude'      => isset( $data['longitude'] )
+					? (float) $data['longitude']
+					: 0,
+				'delivery_note'  => sanitize_textarea_field(
+					$data['delivery_note'] ?? ''
+				),
+				'scheduled_at'   => ! empty( $data['scheduled_at'] )
 					? sanitize_text_field( $data['scheduled_at'] )
 					: null,
-				'created_by'        => get_current_user_id(),
-				'created_at'        => $now,
-				'updated_at'        => $now,
+				'created_by'     => get_current_user_id(),
+				'created_at'     => $now,
+				'updated_at'     => $now,
 			)
 		);
 
@@ -112,14 +149,14 @@ class Delivery {
 	 */
 	public function get( $delivery_id ) {
 
-		if ( ! Permissions::can_view_delivery() ) {
+		if ( ! $this->can_view() ) {
 			return new \WP_Error(
 				'permission_denied',
 				__( 'You do not have permission to view deliveries.', 'dispensary-wp' )
 			);
 		}
 
-		$delivery = $this->delivery_order->find( $delivery_id );
+		$delivery = $this->delivery_order->find( absint( $delivery_id ) );
 
 		if ( ! $delivery ) {
 			return new \WP_Error(
@@ -130,13 +167,13 @@ class Delivery {
 
 		return array(
 			'delivery' => $delivery,
-			'driver'   => $delivery->driver_id
+			'driver'   => ! empty( $delivery->driver_id )
 				? $this->driver->find( $delivery->driver_id )
 				: null,
-			'zone'     => $delivery->zone_id
+			'zone'     => ! empty( $delivery->zone_id )
 				? $this->zone->find( $delivery->zone_id )
 				: null,
-			'route'    => $delivery->route_id
+			'route'    => ! empty( $delivery->route_id )
 				? $this->route->find( $delivery->route_id )
 				: null,
 			'proof'    => $this->proof->find_by_delivery( $delivery_id ),
@@ -148,12 +185,14 @@ class Delivery {
 	 */
 	public function list_deliveries( $args = array() ) {
 
-		if ( ! Permissions::can_view_delivery() ) {
+		if ( ! $this->can_view() ) {
 			return new \WP_Error(
 				'permission_denied',
 				__( 'You do not have permission to view deliveries.', 'dispensary-wp' )
 			);
 		}
+
+		$args = is_array( $args ) ? $args : array();
 
 		return $this->delivery_order->all( $args );
 	}
@@ -163,10 +202,20 @@ class Delivery {
 	 */
 	public function assign_driver( $delivery_id, $driver_id ) {
 
-		if ( ! Permissions::can_manage_delivery() ) {
+		if ( ! $this->can_manage() ) {
 			return new \WP_Error(
 				'permission_denied',
 				__( 'You do not have permission to assign drivers.', 'dispensary-wp' )
+			);
+		}
+
+		$delivery_id = absint( $delivery_id );
+		$driver_id   = absint( $driver_id );
+
+		if ( ! $delivery_id || ! $driver_id ) {
+			return new \WP_Error(
+				'invalid_data',
+				__( 'Valid delivery and driver are required.', 'dispensary-wp' )
 			);
 		}
 
@@ -179,13 +228,26 @@ class Delivery {
 			);
 		}
 
-		return $this->delivery_order->update(
+		$updated = $this->delivery_order->update(
 			$delivery_id,
 			array(
-				'driver_id'  => absint( $driver_id ),
+				'driver_id'  => $driver_id,
 				'updated_at' => current_time( 'mysql', true ),
 			)
 		);
+
+		if ( $updated ) {
+			Audit_Log::log(
+				'delivery_driver_assigned',
+				'delivery',
+				$delivery_id,
+				array(
+					'driver_id' => $driver_id,
+				)
+			);
+		}
+
+		return $updated;
 	}
 
 	/**
@@ -193,14 +255,17 @@ class Delivery {
 	 */
 	public function update_status( $delivery_id, $status, $note = '' ) {
 
-		if ( ! Permissions::can_manage_delivery() ) {
+		if ( ! $this->can_manage() ) {
 			return new \WP_Error(
 				'permission_denied',
 				__( 'You do not have permission to update deliveries.', 'dispensary-wp' )
 			);
 		}
 
-		$allowed = array(
+		$delivery_id = absint( $delivery_id );
+		$status      = sanitize_key( $status );
+
+		$allowed_statuses = array(
 			'pending',
 			'assigned',
 			'ready',
@@ -210,9 +275,7 @@ class Delivery {
 			'cancelled',
 		);
 
-		$status = sanitize_key( $status );
-
-		if ( ! in_array( $status, $allowed, true ) ) {
+		if ( ! in_array( $status, $allowed_statuses, true ) ) {
 			return new \WP_Error(
 				'invalid_status',
 				__( 'Invalid delivery status.', 'dispensary-wp' )
@@ -231,9 +294,9 @@ class Delivery {
 		$updated = $this->delivery_order->update(
 			$delivery_id,
 			array(
-				'status'     => $status,
+				'status'      => $status,
 				'status_note' => sanitize_textarea_field( $note ),
-				'updated_at' => current_time( 'mysql', true ),
+				'updated_at'  => current_time( 'mysql', true ),
 			)
 		);
 
@@ -245,7 +308,7 @@ class Delivery {
 				array(
 					'old_status' => $delivery->status,
 					'new_status' => $status,
-					'note'       => $note,
+					'note'       => sanitize_textarea_field( $note ),
 				)
 			);
 		}
@@ -258,12 +321,14 @@ class Delivery {
 	 */
 	public function add_proof( $delivery_id, $data ) {
 
-		if ( ! Permissions::can_manage_delivery() ) {
+		if ( ! $this->can_manage() ) {
 			return new \WP_Error(
 				'permission_denied',
 				__( 'You do not have permission to add proof of delivery.', 'dispensary-wp' )
 			);
 		}
+
+		$delivery_id = absint( $delivery_id );
 
 		$delivery = $this->delivery_order->find( $delivery_id );
 
@@ -274,48 +339,56 @@ class Delivery {
 			);
 		}
 
+		$data = is_array( $data ) ? $data : array();
+
 		$proof_id = $this->proof->create(
 			array(
-				'delivery_id' => $delivery_id,
-				'type'        => sanitize_key( $data['type'] ?? 'note' ),
-				'file_url'    => esc_url_raw( $data['file_url'] ?? '' ),
-				'signature'   => sanitize_text_field( $data['signature'] ?? '' ),
+				'delivery_id'    => $delivery_id,
+				'type'           => sanitize_key(
+					$data['type'] ?? 'note'
+				),
+				'file_url'       => esc_url_raw(
+					$data['file_url'] ?? ''
+				),
+				'signature'      => sanitize_text_field(
+					$data['signature'] ?? ''
+				),
 				'recipient_name' => sanitize_text_field(
 					$data['recipient_name'] ?? ''
 				),
-				'notes'       => sanitize_textarea_field(
+				'notes'          => sanitize_textarea_field(
 					$data['notes'] ?? ''
 				),
-				'created_by'  => get_current_user_id(),
-				'created_at'  => current_time( 'mysql', true ),
+				'created_by'     => get_current_user_id(),
+				'created_at'     => current_time( 'mysql', true ),
 			)
 		);
 
-		if ( $proof_id ) {
-			$this->delivery_order->update(
-				$delivery_id,
-				array(
-					'status'     => 'delivered',
-					'updated_at' => current_time( 'mysql', true ),
-				)
-			);
-
-			Audit_Log::log(
-				'proof_of_delivery_added',
-				'delivery',
-				$delivery_id,
-				array(
-					'proof_id' => $proof_id,
-				)
-			);
-		}
-
-		return $proof_id
-			? $proof_id
-			: new \WP_Error(
+		if ( ! $proof_id ) {
+			return new \WP_Error(
 				'proof_failed',
 				__( 'Unable to save proof of delivery.', 'dispensary-wp' )
 			);
+		}
+
+		$this->delivery_order->update(
+			$delivery_id,
+			array(
+				'status'     => 'delivered',
+				'updated_at' => current_time( 'mysql', true ),
+			)
+		);
+
+		Audit_Log::log(
+			'proof_of_delivery_added',
+			'delivery',
+			$delivery_id,
+			array(
+				'proof_id' => $proof_id,
+			)
+		);
+
+		return $proof_id;
 	}
 
 	/**
@@ -323,27 +396,34 @@ class Delivery {
 	 */
 	public function create_driver( $data ) {
 
-		if ( ! Permissions::can_manage_delivery() ) {
+		if ( ! $this->can_manage() ) {
 			return new \WP_Error(
 				'permission_denied',
 				__( 'You do not have permission to manage drivers.', 'dispensary-wp' )
 			);
 		}
 
-		$now = current_time( 'mysql', true );
+		$data = is_array( $data ) ? $data : array();
+		$now  = current_time( 'mysql', true );
 
 		return $this->driver->create(
 			array(
-				'user_id'     => absint( $data['user_id'] ?? 0 ),
-				'name'        => sanitize_text_field( $data['name'] ?? '' ),
-				'phone'       => sanitize_text_field( $data['phone'] ?? '' ),
-				'vehicle_type' => sanitize_text_field( $data['vehicle_type'] ?? '' ),
+				'user_id'        => absint( $data['user_id'] ?? 0 ),
+				'name'           => sanitize_text_field(
+					$data['name'] ?? ''
+				),
+				'phone'          => sanitize_text_field(
+					$data['phone'] ?? ''
+				),
+				'vehicle_type'   => sanitize_text_field(
+					$data['vehicle_type'] ?? ''
+				),
 				'vehicle_number' => sanitize_text_field(
 					$data['vehicle_number'] ?? ''
 				),
-				'status'      => 'active',
-				'created_at'  => $now,
-				'updated_at'  => $now,
+				'status'         => 'active',
+				'created_at'     => $now,
+				'updated_at'     => $now,
 			)
 		);
 	}
@@ -353,7 +433,7 @@ class Delivery {
 	 */
 	public function drivers() {
 
-		if ( ! Permissions::can_view_delivery() ) {
+		if ( ! $this->can_view() ) {
 			return new \WP_Error(
 				'permission_denied',
 				__( 'You do not have permission to view drivers.', 'dispensary-wp' )
@@ -368,7 +448,7 @@ class Delivery {
 	 */
 	public function zones() {
 
-		if ( ! Permissions::can_view_delivery() ) {
+		if ( ! $this->can_view() ) {
 			return new \WP_Error(
 				'permission_denied',
 				__( 'You do not have permission to view delivery zones.', 'dispensary-wp' )
@@ -383,7 +463,7 @@ class Delivery {
 	 */
 	public function routes() {
 
-		if ( ! Permissions::can_view_delivery() ) {
+		if ( ! $this->can_view() ) {
 			return new \WP_Error(
 				'permission_denied',
 				__( 'You do not have permission to view delivery routes.', 'dispensary-wp' )
