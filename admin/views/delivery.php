@@ -102,7 +102,8 @@ $deliveries = $delivery_service->list_deliveries(
 
 $drivers = $delivery_service->drivers();
 
-$orders = Order::all(
+$order_model = new Order();
+$orders = $order_model->all(
 	array(
 		'limit' => 100,
 	)
